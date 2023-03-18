@@ -16,7 +16,7 @@
 #include <vector>
 #include <stdio.h>
 #include <bitset>
-
+#include <algorithm>
 #include "coveredBool.h"
 
 /// <summary>
@@ -87,7 +87,9 @@ public:
 	/// <param name="Expression">string given by user</param>
 	/// <returns>vector of string (normalized string)</returns>
 	static normalizedString* parse_string(std::string* Expression);
-
+	int get_bitset_index(const std::vector<int>& bitset_vector, int bitset);
+	std::string vector_to_expression(std::vector<std::string> terms, std::set<char>* uliterals);
+	bool is_canonical_sop(std::string function, std::set<char> uniqueLiterals);
 };
 
 

@@ -148,3 +148,82 @@ int utils::count_bits(int x)
 
 	return count;
 }
+int utils::get_bitset_index(const std::vector<int>& bitset_vector, int bitset) {
+	auto it = std::find(bitset_vector.begin(), bitset_vector.end(), bitset);
+	if (it != bitset_vector.end()) {
+		return std::distance(bitset_vector.begin(), it);
+	}
+	return -1;
+}
+std::string utils::vector_to_expression(std::vector<std::string> terms, std::set<char>* uliterals)
+{
+	std::string result = "";
+	bool first = true;
+
+	for (std::string term : terms)
+	{
+		std::string temp = "";
+		bool firstChar = true;
+		for (char c : term)
+		{
+			if (c == '0')
+			{
+				temp += (firstChar) ? "!" : " && !";
+			}
+			else if (c == '1')
+			{
+				temp += (firstChar) ? "" : " || ";
+			}
+			else
+			{
+				temp += (firstChar) ? "" : " || ";
+				temp += (c >= 'A' && c <= 'Z') ? c : (*uliterals->find(c));
+			}
+
+			firstChar = false;
+		}
+
+		result += (first) ? temp : (" || " + temp);
+		first = false;
+	}
+
+	return result;
+}
+bool utils::is_canonical_sop(std::string function, std::set<char> uniqueLiterals)
+{
+	// Check if function is in SOP form
+	if (function.find('(') != std::string::npos || function.find(')') != std::string::npos)
+	{
+		std::cerr << "Error: Function is not in canonical SOP form\n";
+		return false;
+	}
+
+	// Check if variables are in alphabetical order
+	std::vector<char> literals;
+	for (char c : function) {
+		if (isalpha(c)) {
+			literals.push_back(c);
+		}
+	}
+	std::sort(literals.begin(), literals.end());
+	std::string sortedLiterals(literals.begin(), literals.end());
+	std::string sortedFunction = function;
+	std::sort(sortedFunction.begin(), sortedFunction.end());
+	if (sortedLiterals != sortedFunction)
+	{
+		std::cerr << "Error: Variables are not in alphabetical order\n";
+		return false;
+	}
+
+	// Check that all variables are present
+	for (auto lit : literals)
+	{
+		if (uniqueLiterals.find(lit) == uniqueLiterals.end())
+		{
+			std::cerr << "Error: Variable " << lit << " is not a valid input variable\n";
+			return false;
+		}
+	}
+
+	return true;
+}

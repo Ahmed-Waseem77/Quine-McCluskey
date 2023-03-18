@@ -7,14 +7,13 @@ coverChart::coverChart()
 
 coverChart::coverChart(std::vector<coveredBool> coveredBools, std::map<int, int> chart)
 {
-	
+
 }
 
 void coverChart::set_primeImplicants(std::vector<coveredBool> coveredBools)
 {
 	_primeImplicants = coveredBools;
 }
-
 void coverChart::build_chart(int bits)
 {
 	int primeImplicantIndex = 0;
@@ -32,24 +31,32 @@ void coverChart::build_chart(int bits)
 		primeImplicantIndex = 0;
 	}
 }
+std::vector<coveredBool> coverChart::get_essential_primes() {
+	
+	std::vector<int> bitmask_indexes;
+	std::map<int, int> occurences;
+	utils util;
 
-std::vector<coveredBool> coverChart::get_essential_primes() //redesign
-{
-	std::vector<coveredBool> temp;
-	int count = 0;
-	for (auto i : _chart)
-	{
-		if (utils::count_bits(i.second) == 1) 
-		{
-			temp.push_back(_primeImplicants[count]);
+	for (auto i : _chart) {
+		if (util.count_bits(i.second) == 1) {
+			bitmask_indexes.push_back(i.second);
 		}
-		count++;
 	}
 
-	return temp;
+	for (auto i : bitmask_indexes) {
+		occurences[i]++;
+	}
+
+	for (auto i : occurences) {
+		if (i.second == 1) {
+			essential_primes.push_back(_primeImplicants[util.get_bitset_index(bitmask_indexes, i.first)]);
+		}
+	}
+
+	return essential_primes;
 }
 
-bool coverChart::reduce_chart(int bits) //redesign
+bool coverChart::reduce_chart(int bits)
 {
 	auto temp = _chart;
 	int count = 0;
@@ -57,6 +64,7 @@ bool coverChart::reduce_chart(int bits) //redesign
 	{
 		if (i.second == 1)
 		{
+			essential_primes.push_back(_primeImplicants[count]); //add essential prime to vector
 			for (auto j : _chart)
 			{
 				j.second &= 0; //clears bits in the rows and columns covered by EPI
@@ -68,6 +76,7 @@ bool coverChart::reduce_chart(int bits) //redesign
 	return _chart == temp;
 }
 
+
 bool coverChart::remove_chart_redundancy(int bits) //redesign
 {
 	bool temp = false;
@@ -76,9 +85,9 @@ bool coverChart::remove_chart_redundancy(int bits) //redesign
 	{
 		for (auto j : _chart)
 		{
-			temp = i.second & j.second; 
+			temp = i.second & j.second;
 		}
-		
+
 		if (!temp)
 		{
 			i.second &= 0; //clears column
@@ -92,7 +101,7 @@ bool coverChart::remove_chart_redundancy(int bits) //redesign
 
 bool coverChart::three_step_heuristic(int bits)
 {
-	bool temp = 0;
+	bool temp = false;
 
 begin:
 
@@ -102,20 +111,20 @@ begin:
 		if (remove_chart_redundancy(bits))
 		{
 			print_chart(bits);
-			return temp; //returns 0 if its not simplified (no change to chart)
+			return temp; //returns false if it's not simplified (no change to chart)
 		}
-		temp = 1;
+		temp = true;
 
 		goto begin; //if redundancy is resolved repeat the 3 step heuristic again
 	}
 
-
+	return true;
 }
 
 void coverChart::print_chart(int bits)
 {
 	std::vector<int> IncludedMinterms;
-	for(auto i : _chart)
+	for (auto i : _chart)
 	{
 		if (i.second > 1)
 		{
@@ -132,13 +141,13 @@ void coverChart::print_chart(int bits)
 
 	std::cout << "\n";
 
-	for (int i = 0; i < IncludedMinterms.size()*4 + 1; i++)
+	for (int i = 0; i < IncludedMinterms.size() * 4 + 1; i++)
 	{
 		std::cout << "_";
 	}
 
 	std::cout << "\n";
-	
+
 	for (int i = 0; i < _primeImplicants.size(); i++)
 	{
 		std::cout << *coveredBool::coveredBool_to_binary(_primeImplicants[i], bits) << std::setw(bits * 1.5 - bits) << " | ";
